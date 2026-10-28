@@ -1,0 +1,26 @@
+
+const translations={
+fr:{home:"Accueil",animals:"Les animaux",colors:"Les couleurs",numbers:"Les chiffres",fruits:"Les fruits",vegetables:"Les légumes",shapes:"Les formes géométriques",learn:"Apprendre en s’amusant !",listen:"🔊 Écouter",footer:"Petit Génie — Un petit pas chaque jour vers un grand avenir !",search:"Choisir une langue"},
+ar:{home:"الرئيسية",animals:"الحيوانات",colors:"الألوان",numbers:"الأرقام",fruits:"الفواكه",vegetables:"الخضر",shapes:"الأشكال الهندسية",learn:"نتعلّم ونمرح!",listen:"🔊 استمع",footer:"Petit Génie — خطوة صغيرة كل يوم نحو مستقبل كبير!",search:"اختر اللغة"},
+en:{home:"Home",animals:"Animals",colors:"Colors",numbers:"Numbers",fruits:"Fruits",vegetables:"Vegetables",shapes:"Geometric shapes",learn:"Learn while having fun!",listen:"🔊 Listen",footer:"Petit Génie — A little step every day toward a great future!",search:"Choose a language"}
+};
+const pageData={
+"Animaux.html":{key:"animals",accent:"#f5ae20",tint:"#fff8d7",edge:"#ffe49a",items:[
+["lion","Lion","أسد","Lion"],["elephant","Éléphant","فيل","Elephant"],["panda","Panda","باندا","Panda"],["girafe","Girafe","زرافة","Giraffe"]]},
+"Couleurs.html":{key:"colors",accent:"#169ce8",tint:"#e5f7ff",edge:"#bfeaff",items:[
+["rouge","Rouge","أحمر","Red"],["bleu","Bleu","أزرق","Blue"],["jaune","Jaune","أصفر","Yellow"],["vert","Vert","أخضر","Green"],["violet","Violet","بنفسجي","Purple"]]},
+"Chiffres.html":{key:"numbers",accent:"#ef4c85",tint:"#fff0f6",edge:"#ffd0e2",items:[
+["un","Un","واحد","One"],["deux","Deux","اثنان","Two"],["trois","Trois","ثلاثة","Three"],["quatre","Quatre","أربعة","Four"],["cinq","Cinq","خمسة","Five"]]},
+"Fruits.html":{key:"fruits",accent:"#ed5591",tint:"#fff0f6",edge:"#ffd0e2",items:[
+["pomme","Pomme","تفاحة","Apple"],["banane","Banane","موز","Banana"],["raisin","Raisin","عنب","Grapes"],["fraise","Fraise","فراولة","Strawberry"]]},
+"Légumes.html":{key:"vegetables",accent:"#50b94e",tint:"#efffe8",edge:"#d2f4c7",items:[
+["carotte","Carotte","جزر","Carrot"],["brocoli","Brocoli","بروكلي","Broccoli"],["tomate","Tomate","طماطم","Tomato"],["aubergine","Aubergine","باذنجان","Eggplant"]]},
+"Forme.html":{key:"shapes",accent:"#9b64df",tint:"#f5edff",edge:"#dfccff",items:[
+["etoile","Étoile","نجمة","Star"],["cercle","Cercle","دائرة","Circle"],["triangle","Triangle","مثلث","Triangle"],["carre","Carré","مربع","Square"],["rectangle","Rectangle","مستطيل","Rectangle"]]}
+};
+function say(text,lang){if(!("speechSynthesis" in window)){alert("Audio is not supported in this browser.");return;}speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(text);u.lang=({fr:"fr-FR",ar:"ar-SA",en:"en-US"})[lang]||"fr-FR";u.rate=.82;speechSynthesis.speak(u)}
+function currentLang(){return localStorage.getItem("petit-genie-lang")||"fr"}
+function setLang(lang){localStorage.setItem("petit-genie-lang",lang);document.querySelectorAll("[data-i18n]").forEach(el=>{let k=el.dataset.i18n;if(translations[lang][k])el.textContent=translations[lang][k]});document.querySelectorAll(".word-card").forEach(card=>{let vals=JSON.parse(card.dataset.words);card.querySelector(".word-title").textContent=vals[{fr:0,ar:1,en:2}[lang]];card.querySelector(".sound").setAttribute("aria-label",translations[lang].listen);});document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr"}
+function initHeader(){let sel=document.querySelector("#language");if(sel){sel.value=currentLang();sel.addEventListener("change",()=>{setLang(sel.value);if(document.body.dataset.page){renderLesson(document.body.dataset.page)}})}setLang(currentLang())}
+function renderLesson(filename){let d=pageData[filename];if(!d)return;document.documentElement.style.setProperty("--accent",d.accent);document.documentElement.style.setProperty("--tint",d.tint);document.documentElement.style.setProperty("--edge",d.edge);let lang=currentLang();let title=translations[lang][d.key];document.querySelector("#lesson-title").textContent=title;document.querySelector("#lesson-intro").textContent=({fr:"Regarde, lis et écoute chaque mot !",ar:"شاهد واقرأ واستمع إلى كل كلمة!",en:"Look, read, and listen to each word!"})[lang];document.querySelector("#listen-all").textContent=translations[lang].listen+" — "+({fr:"tous les mots",ar:"كل الكلمات",en:"all words"})[lang];let grid=document.querySelector("#word-grid");grid.innerHTML="";d.items.forEach((it,i)=>{let [file,fr,ar,en]=it;let card=document.createElement("article");card.className="word-card";card.dataset.words=JSON.stringify([fr,ar,en]);card.innerHTML=`<img src="images/${d.key==="animals"?"animaux":d.key==="colors"?"couleurs":d.key==="numbers"?"chiffres":d.key==="vegetables"?"legumes":d.key==="shapes"?"formes":"fruits"}/${file}.svg" alt="${fr}"><h3 class="word-title">${({fr,ar,en})[lang]}</h3><p class="ar-word">${ar}</p><p class="en">${en}</p><button class="sound" aria-label="Listen">🔊</button>`;card.querySelector(".sound").addEventListener("click",()=>say(({fr,ar,en})[currentLang()],currentLang()));grid.appendChild(card)});document.querySelector("#listen-all").onclick=()=>{let i=0;function next(){if(i>=d.items.length)return;let it=d.items[i++];say(({fr:it[1],ar:it[2],en:it[3]})[currentLang()],currentLang());setTimeout(next,1100)}next()};setLang(lang)}
+document.addEventListener("DOMContentLoaded",()=>{initHeader();let f=document.body.dataset.page;if(f)renderLesson(f)})
